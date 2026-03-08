@@ -272,7 +272,7 @@ export function resolveAgentWorkspaceDir(cfg: OpenClawConfig, agentId: string) {
 
 function normalizePathForComparison(input: string): string {
   const normalized = path.resolve(stripNullBytes(resolveUserPath(input)));
-  if (process.platform === "win32") {
+  if (process.platform === "win32" || process.platform === "darwin") {
     return normalized.toLowerCase();
   }
   return normalized;

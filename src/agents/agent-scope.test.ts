@@ -429,7 +429,9 @@ describe("resolveAgentConfig", () => {
     const agentDir = resolveAgentDir({} as OpenClawConfig, "main");
     expect(agentDir).toBe(path.join(path.resolve(home), ".openclaw", "agents", "main", "agent"));
   });
+});
 
+describe("resolveAgentIdByWorkspacePath", () => {
   it("returns the most specific workspace match for a directory", () => {
     const cfg: OpenClawConfig = {
       agents: {
@@ -455,7 +457,9 @@ describe("resolveAgentConfig", () => {
 
     expect(resolveAgentIdByWorkspacePath(cfg, "/var/tmp/unrelated")).toBeUndefined();
   });
+});
 
+describe("resolveAgentIdsByWorkspacePath", () => {
   it("returns matching workspaces ordered by specificity", () => {
     const cfg: OpenClawConfig = {
       agents: {
