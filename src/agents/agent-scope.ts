@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveAgentModelFallbackValues } from "../config/model-input.js";
@@ -271,8 +272,16 @@ export function resolveAgentWorkspaceDir(cfg: OpenClawConfig, agentId: string) {
 }
 
 function normalizePathForComparison(input: string): string {
-  const normalized = path.resolve(stripNullBytes(resolveUserPath(input)));
-  if (process.platform === "win32" || process.platform === "darwin") {
+  const resolved = path.resolve(stripNullBytes(resolveUserPath(input)));
+  let normalized = resolved;
+  // Prefer realpath when available to normalize aliases/symlinks (for example /tmp -> /private/tmp)
+  // and canonical path case without forcing case-folding on case-sensitive macOS volumes.
+  try {
+    normalized = fs.realpathSync.native(resolved);
+  } catch {
+    // Keep lexical path for non-existent directories.
+  }
+  if (process.platform === "win32") {
     return normalized.toLowerCase();
   }
   return normalized;

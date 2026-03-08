@@ -433,45 +433,53 @@ describe("resolveAgentConfig", () => {
 
 describe("resolveAgentIdByWorkspacePath", () => {
   it("returns the most specific workspace match for a directory", () => {
+    const workspaceRoot = `/tmp/openclaw-agent-scope-${Date.now()}-root`;
+    const opsWorkspace = `${workspaceRoot}/projects/ops`;
     const cfg: OpenClawConfig = {
       agents: {
         list: [
-          { id: "main", workspace: "/tmp/openclaw" },
-          { id: "ops", workspace: "/tmp/openclaw/projects/ops" },
+          { id: "main", workspace: workspaceRoot },
+          { id: "ops", workspace: opsWorkspace },
         ],
       },
     };
 
-    expect(resolveAgentIdByWorkspacePath(cfg, "/tmp/openclaw/projects/ops/src")).toBe("ops");
+    expect(resolveAgentIdByWorkspacePath(cfg, `${opsWorkspace}/src`)).toBe("ops");
   });
 
   it("returns undefined when directory has no matching workspace", () => {
+    const workspaceRoot = `/tmp/openclaw-agent-scope-${Date.now()}-root`;
     const cfg: OpenClawConfig = {
       agents: {
         list: [
-          { id: "main", workspace: "/tmp/openclaw" },
-          { id: "ops", workspace: "/tmp/openclaw-ops" },
+          { id: "main", workspace: workspaceRoot },
+          { id: "ops", workspace: `${workspaceRoot}-ops` },
         ],
       },
     };
 
-    expect(resolveAgentIdByWorkspacePath(cfg, "/var/tmp/unrelated")).toBeUndefined();
+    expect(
+      resolveAgentIdByWorkspacePath(cfg, `/tmp/openclaw-agent-scope-${Date.now()}-unrelated`),
+    ).toBeUndefined();
   });
 });
 
 describe("resolveAgentIdsByWorkspacePath", () => {
   it("returns matching workspaces ordered by specificity", () => {
+    const workspaceRoot = `/tmp/openclaw-agent-scope-${Date.now()}-root`;
+    const opsWorkspace = `${workspaceRoot}/projects/ops`;
+    const opsDevWorkspace = `${opsWorkspace}/dev`;
     const cfg: OpenClawConfig = {
       agents: {
         list: [
-          { id: "main", workspace: "/tmp/openclaw" },
-          { id: "ops", workspace: "/tmp/openclaw/projects/ops" },
-          { id: "ops-dev", workspace: "/tmp/openclaw/projects/ops/dev" },
+          { id: "main", workspace: workspaceRoot },
+          { id: "ops", workspace: opsWorkspace },
+          { id: "ops-dev", workspace: opsDevWorkspace },
         ],
       },
     };
 
-    expect(resolveAgentIdsByWorkspacePath(cfg, "/tmp/openclaw/projects/ops/dev/pkg")).toEqual([
+    expect(resolveAgentIdsByWorkspacePath(cfg, `${opsDevWorkspace}/pkg`)).toEqual([
       "ops-dev",
       "ops",
       "main",
