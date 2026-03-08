@@ -344,8 +344,8 @@ export async function resolveReplyDirectives(params: {
 
   const surfaceDirectiveDefaults = resolveSurfaceDirectiveDefaults({
     agentCfg,
-    surface: sessionCtx.Surface ?? ctx.Surface,
-    provider: sessionCtx.Provider ?? ctx.Provider,
+    surface: ctx.Surface,
+    provider: ctx.Provider,
   });
 
   const resolvedVerboseLevel =

@@ -218,13 +218,8 @@ function resolveInternalChatSurface(
 ): string {
   const id = client?.id?.trim().toLowerCase();
   const displayName = client?.displayName?.trim().toLowerCase();
-  const mode = client?.mode?.trim().toLowerCase();
 
   if (id === "openclaw-tui" || displayName === "openclaw-tui") {
-    return "tui";
-  }
-
-  if (mode === "ui" && id === "gateway-client" && displayName?.includes("tui")) {
     return "tui";
   }
 
