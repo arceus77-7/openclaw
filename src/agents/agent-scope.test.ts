@@ -13,6 +13,8 @@ import {
   resolveAgentModelPrimary,
   resolveRunModelFallbacksOverride,
   resolveAgentWorkspaceDir,
+  resolveAgentIdByWorkspacePath,
+  resolveAgentIdsByWorkspacePath,
 } from "./agent-scope.js";
 
 afterEach(() => {
@@ -426,5 +428,49 @@ describe("resolveAgentConfig", () => {
 
     const agentDir = resolveAgentDir({} as OpenClawConfig, "main");
     expect(agentDir).toBe(path.join(path.resolve(home), ".openclaw", "agents", "main", "agent"));
+  });
+
+  it("returns the most specific workspace match for a directory", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "main", workspace: "/tmp/openclaw" },
+          { id: "ops", workspace: "/tmp/openclaw/projects/ops" },
+        ],
+      },
+    };
+
+    expect(resolveAgentIdByWorkspacePath(cfg, "/tmp/openclaw/projects/ops/src")).toBe("ops");
+  });
+
+  it("returns undefined when directory has no matching workspace", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "main", workspace: "/tmp/openclaw" },
+          { id: "ops", workspace: "/tmp/openclaw-ops" },
+        ],
+      },
+    };
+
+    expect(resolveAgentIdByWorkspacePath(cfg, "/var/tmp/unrelated")).toBeUndefined();
+  });
+
+  it("returns matching workspaces ordered by specificity", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "main", workspace: "/tmp/openclaw" },
+          { id: "ops", workspace: "/tmp/openclaw/projects/ops" },
+          { id: "ops-dev", workspace: "/tmp/openclaw/projects/ops/dev" },
+        ],
+      },
+    };
+
+    expect(resolveAgentIdsByWorkspacePath(cfg, "/tmp/openclaw/projects/ops/dev/pkg")).toEqual([
+      "ops-dev",
+      "ops",
+      "main",
+    ]);
   });
 });
