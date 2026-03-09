@@ -29,7 +29,10 @@ async function createTempDir(): Promise<string> {
   return dir;
 }
 
-async function writeCodexAuthFile(params: { homeDir: string; authMode: string }) {
+async function writeCodexAuthFile(params: {
+  homeDir: string;
+  authMode: string;
+}) {
   const codexDir = path.join(params.homeDir, ".codex");
   await mkdir(codexDir, { recursive: true });
   await writeFile(
@@ -90,8 +93,8 @@ describe("resolveAcpxSpawnEnv", () => {
       { agent: "codex" },
     );
 
-    expect(env.OPENAI_API_KEY).toBe("sk-openai");
-    expect(env.CODEX_API_KEY).toBe("sk-codex");
+    expect(env.OPENAI_API_KEY).toBe("test-openai-key");
+    expect(env.CODEX_API_KEY).toBe("test-codex-key");
   });
 
   it("preserves non-Codex agent env even when ChatGPT auth file exists", async () => {
@@ -101,12 +104,12 @@ describe("resolveAcpxSpawnEnv", () => {
     const env = resolveAcpxSpawnEnv(
       {
         HOME: homeDir,
-        OPENAI_API_KEY: "sk-openai",
+        OPENAI_API_KEY: "test-openai-key", // pragma: allowlist secret
       },
       { agent: "claude-code" },
     );
 
-    expect(env.OPENAI_API_KEY).toBe("sk-openai");
+    expect(env.OPENAI_API_KEY).toBe("test-openai-key");
   });
 
   it("falls back to the current home directory when HOME is absent", async () => {
@@ -177,7 +180,12 @@ describe("resolveSpawnCommand", () => {
 
     expect(resolved.command).toBe("C:\\node\\node.exe");
     expect(resolved.args[0]).toBe(scriptPath);
-    expect(resolved.args.slice(1)).toEqual(["--format", "json", "agent", "status"]);
+    expect(resolved.args.slice(1)).toEqual([
+      "--format",
+      "json",
+      "agent",
+      "status",
+    ]);
     expect(resolved.shell).toBeUndefined();
     expect(resolved.windowsHide).toBe(true);
   });
@@ -187,7 +195,11 @@ describe("resolveSpawnCommand", () => {
     const wrapperPath = path.join(dir, "acpx.cmd");
     const exePath = path.join(dir, "acpx.exe");
     await writeFile(exePath, "", "utf8");
-    await writeFile(wrapperPath, ["@ECHO off", '"%~dp0\\acpx.exe" %*', ""].join("\r\n"), "utf8");
+    await writeFile(
+      wrapperPath,
+      ["@ECHO off", '"%~dp0\\acpx.exe" %*', ""].join("\r\n"),
+      "utf8",
+    );
 
     const resolved = resolveSpawnCommand(
       {
