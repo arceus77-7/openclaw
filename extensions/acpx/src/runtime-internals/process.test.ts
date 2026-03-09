@@ -171,6 +171,28 @@ describe("resolveAcpxSpawnEnv", () => {
     );
     expect(secondEnv.OPENAI_API_KEY).toBeUndefined();
   });
+
+  it("preserves unrelated env vars while scrubbing conflicting Codex auth keys", async () => {
+    const homeDir = await createTempDir();
+    await writeCodexAuthFile({ homeDir, authMode: "chatgpt" });
+
+    const env = resolveAcpxSpawnEnv(
+      {
+        HOME: homeDir,
+        OPENAI_API_KEY: "test-openai-key", // pragma: allowlist secret
+        CODEX_API_KEY: "test-codex-key", // pragma: allowlist secret
+        PATH: "/usr/bin:/bin",
+        CUSTOM_FLAG: "keep-me",
+      },
+      { agent: "codex" },
+    );
+
+    expect(env.PATH).toBe("/usr/bin:/bin");
+    expect(env.CUSTOM_FLAG).toBe("keep-me");
+    expect(env.OPENCLAW_SHELL).toBe("acp");
+    expect(env.OPENAI_API_KEY).toBeUndefined();
+    expect(env.CODEX_API_KEY).toBeUndefined();
+  });
 });
 
 describe("resolveSpawnCommand", () => {
